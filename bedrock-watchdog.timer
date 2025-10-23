@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Bedrock Watchdog every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=bedrock-watchdog.service
+
+[Install]
+WantedBy=timers.target

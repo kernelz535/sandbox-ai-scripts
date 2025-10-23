@@ -107,39 +107,22 @@ AIPs in the Sandbox account"
 
 
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/iwsgqc9ip24v - drpem2-inference-profile
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/y4j0tcuyxnse - bala-modelid-inference-profile
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/qyzg4wencwp2 - bala-modelid-inference-profile
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/3zv2f0wamzd4 - sonnet-app-inference-profile
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/jdhrix5yj7vt - sonnet-app-inference-profile
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/qquft48uwxia - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/nnk00bcfgg7i - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/o3lusa9udpoh - anthcld37sonv1
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/gihg3g6p6t3k - anthcld37sonv1
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/35kedmlwvrqy - anthcld35sonv1
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/385toy4v8hy4 - anthcld37sonv1
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/8ao7jip49h5s - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/3mfjs0vg28gm - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/9436jzaia8su - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/tig46ox2mi0k - dzd_5idy2dkxrdmfl3 aiahmddyh5kskn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/w5h49m84b6nv - dzd_5idy2dkxrdmfl3 6dqu27rlwsqucn
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/7njv6am2e610 Claude Opus4
-
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/sjmlz5l91sce Claude Sonnet 4
 
 ################################# CURLS for Bedrock # ####################################################

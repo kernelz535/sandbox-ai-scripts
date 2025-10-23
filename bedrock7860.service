@@ -1,0 +1,20 @@
+[Unit]
+Description=Bedrock HTTPS Service on Port 7860
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/ssm-user/bedrock/https_bedrock_multiple_logging.py \
+  --model-id arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/sjmlz5l91sce \
+  --port 7860 \
+  --certfile /home/ssm-user/bedrock/server.crt \
+  --keyfile /home/ssm-user/bedrock/server.key
+WorkingDirectory=/home/ssm-user/bedrock
+User=ssm-user
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/bedrock7860.log
+StandardError=append:/var/log/bedrock7860.err
+
+[Install]
+WantedBy=multi-user.target

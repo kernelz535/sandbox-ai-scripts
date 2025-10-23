@@ -1,0 +1,8 @@
+[Unit]
+Description=Watchdog for Bedrock HTTPS Services
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/ssm-user/bedrock/watchdog.sh
+User=root

@@ -58,7 +58,7 @@ def is_llama_model(model_id: str) -> bool:
     return any(x in model_id for x in ["llama", "meta", "scout"]) and not is_aip(model_id)
 
 
-def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 500, temperature: float = 0.3) -> str:
+def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000, temperature: float = 0.3) -> str:
     """Send prompt to AWS Bedrock model and return parsed text output."""
 
     logger.info(f"Sending prompt to Bedrock model {model_id}")

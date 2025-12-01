@@ -58,28 +58,33 @@ def is_llama_model(model_id: str) -> bool:
     return any(x in model_id for x in ["llama", "meta", "scout"]) and not is_aip(model_id)
 
 
-def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000, temperature: float = 0.3) -> str:
+def get_bedrock_response(model_id: str, prompt_text: str,
+                         max_tokens: int = 1000,
+                         temperature: float = 0.3) -> str:
     """Send prompt to AWS Bedrock model and return parsed text output."""
 
     logger.info(f"Sending prompt to Bedrock model {model_id}")
     client = get_bedrock_client()
 
-    # ---------- AIP FORMAT ----------
+    # ---------- AIP (Application Inference Profile using Llama / Scout) ----------
     if is_aip(model_id):
         body = {
             "prompt": prompt_text,
-            "maxTokens": max_tokens,
-            "temperature": temperature
+            "max_gen_len": max_tokens,
+            "temperature": temperature,
+            "top_p": 0.9
         }
-    # ---------- LLAMA FORMAT ----------
+
+    # ---------- LLAMA FOUNDATION MODEL ----------
     elif is_llama_model(model_id):
         body = {
             "prompt": prompt_text,
             "max_gen_len": max_tokens,
             "temperature": temperature,
-            "top_p": 0.9,
+            "top_p": 0.9
         }
-    # ---------- ANTHROPIC FORMAT ----------
+
+    # ---------- ANTHROPIC MODELS ----------
     else:
         body = {
             "anthropic_version": "bedrock-2023-05-31",
@@ -101,20 +106,18 @@ def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000
 
     except Exception as e:
         logger.error(f"Bedrock API error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to connect to AWS Bedrock: {str(e)}")
+        raise HTTPException(status_code=500,
+                            detail=f"Failed to connect to AWS Bedrock: {str(e)}")
 
     # ---------- PARSE OUTPUT ----------
-    if is_aip(model_id):
-        return raw.get("completion", "").strip()
-
-    if is_llama_model(model_id):
+    # AIP + LLAMA share the same output format
+    if is_aip(model_id) or is_llama_model(model_id):
         return raw.get("generation", "").strip()
 
     # Anthropic
     content = raw.get("content", [])
     txt = [c.get("text", "") for c in content if "text" in c]
     return "\n".join(txt).strip()
-
 
 
 # ---------- Core Functions ----------

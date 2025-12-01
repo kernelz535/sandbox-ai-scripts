@@ -47,30 +47,39 @@ app.add_middleware(
 def get_bedrock_client():
     return boto3.client("bedrock-runtime", region_name="us-east-1")
 
-def is_llama_model(model_id: str) -> bool:
-    """
-    Detect Meta Llama or Scout models, including AIP wrappers.
-    """
-    model_id = model_id.lower()
-    return any(x in model_id for x in ["llama", "meta", "scout"])
+def is_aip(model_id: str) -> bool:
+    """Detect Application Inference Profiles."""
+    return ":application-inference-profile/" in model_id
 
-def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000, temperature: float = 0.3) -> str:
+
+def is_llama_model(model_id: str) -> bool:
+    """Detect Llama / Meta models (not AIP)."""
+    model_id = model_id.lower()
+    return any(x in model_id for x in ["llama", "meta", "scout"]) and not is_aip(model_id)
+
+
+def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 500, temperature: float = 0.3) -> str:
     """Send prompt to AWS Bedrock model and return parsed text output."""
 
     logger.info(f"Sending prompt to Bedrock model {model_id}")
-    logger.debug(f"Prompt text: {prompt_text}")
-
     client = get_bedrock_client()
-    llama_mode = is_llama_model(model_id)
 
-    # ---------- Construct correct body ----------
-    if llama_mode:
+    # ---------- AIP FORMAT ----------
+    if is_aip(model_id):
+        body = {
+            "prompt": prompt_text,
+            "maxTokens": max_tokens,
+            "temperature": temperature
+        }
+    # ---------- LLAMA FORMAT ----------
+    elif is_llama_model(model_id):
         body = {
             "prompt": prompt_text,
             "max_gen_len": max_tokens,
             "temperature": temperature,
             "top_p": 0.9,
         }
+    # ---------- ANTHROPIC FORMAT ----------
     else:
         body = {
             "anthropic_version": "bedrock-2023-05-31",
@@ -81,7 +90,6 @@ def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000
             ],
         }
 
-    # ---------- Invoke model ----------
     try:
         response = client.invoke_model(
             modelId=model_id,
@@ -89,23 +97,24 @@ def get_bedrock_response(model_id: str, prompt_text: str, max_tokens: int = 1000
             accept="application/json",
             body=json.dumps(body),
         )
-
-        resp_body = json.loads(response["body"].read())
-        logger.info(f"Raw Bedrock response: {json.dumps(resp_body)[:500]}")
+        raw = json.loads(response["body"].read())
 
     except Exception as e:
         logger.error(f"Bedrock API error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to connect to AWS Bedrock: {str(e)}")
 
-    # ---------- Parse response ----------
-    if llama_mode:
-        # Llama returns: {"generation": "text output"}
-        return resp_body.get("generation", "").strip()
+    # ---------- PARSE OUTPUT ----------
+    if is_aip(model_id):
+        return raw.get("completion", "").strip()
 
-    # Anthropic returns: {"content": [{"text": "..."}]}
-    contents = resp_body.get("content", [])
-    text_chunks = [c.get("text", "") for c in contents if "text" in c]
-    return "\n".join(text_chunks).strip()
+    if is_llama_model(model_id):
+        return raw.get("generation", "").strip()
+
+    # Anthropic
+    content = raw.get("content", [])
+    txt = [c.get("text", "") for c in content if "text" in c]
+    return "\n".join(txt).strip()
+
 
 
 # ---------- Core Functions ----------

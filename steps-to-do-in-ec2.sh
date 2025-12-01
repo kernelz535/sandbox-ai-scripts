@@ -220,11 +220,11 @@ arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/9ujinf0lfsw
 python3 https_bedrock_multiple.py \
  --model-id arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/zpxfizihhbgp \
  --port 7862\
- --certfile server.cert \
+ --certfile server.crt \
  --keyfile server.key
 
 python3 https_bedrock_multiple.py \
  --model-id arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/9ujinf0lfswg \
  --port 7863\
- --certfile server.cert \
+ --certfile server.crt \
  --keyfile server.key

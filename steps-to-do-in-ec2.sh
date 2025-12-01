@@ -213,3 +213,4 @@ tail -f /var/log/bedrock7860.log
 tail -f /var/log/bedrock7861.log
 
 
+arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/zpxfizihhbgp --> Sonnet 4.5

@@ -217,7 +217,7 @@ arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/zpxfizihhbg
 arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/9ujinf0lfswg --> Llama Scout 4
 
 
-python3 https_bedrock_multiple.py \
+python3 https_bedrock_multiple_logging_llama_claude.py \
  --model-id arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/zpxfizihhbgp \
  --port 7862\
  --certfile server.crt \

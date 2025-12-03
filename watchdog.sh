@@ -30,3 +30,5 @@ check_service() {
 
 check_service 7860 bedrock7860.service
 check_service 7861 bedrock7861.service
+check_service 7862 bedrock7862.service
+check_service 7863 bedrock7863.service

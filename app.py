@@ -116,6 +116,8 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
                     "messages": [
                         {
                             "role": "user",
+                             "max_tokens": 4000,
+                             "temperature": 0.2,
                             "content": text
                         }
                     ]

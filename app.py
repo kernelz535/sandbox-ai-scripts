@@ -13,6 +13,7 @@ from pydantic import BaseModel
 # =====================================================
 BEDROCK_REGION = "us-east-1"
 
+
 AIP_LIST = [
     {
         "name": "claude-sonnet-chat",
@@ -106,18 +107,17 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
         try:
 
             # =================================================
-            # CHAT MODEL (CLAUDE)
+            # CHAT MODEL (CLAUDE - FIXED)
             # =================================================
             if aip_type == "chat":
 
                 body = {
                     "anthropic_version": "bedrock-2023-05-31",
+                    "max_tokens": 4000,
                     "temperature": 0.2,
                     "messages": [
                         {
                             "role": "user",
-                             "max_tokens": 4000,
-                             "temperature": 0.2,
                             "content": text
                         }
                     ]
@@ -166,7 +166,7 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
             latency_ms = round((time.time() - start_time) * 1000, 2)
 
             # =================================================
-            # LOG OUTPUT (FULL, NO TRUNCATION)
+            # LOGGING (FULL OUTPUT)
             # =================================================
             logger.info(f"[{request_id}] LATENCY_MS={latency_ms}")
             logger.info(f"[{request_id}] OUTPUT_TYPE={type(output)}")
@@ -193,16 +193,18 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
         except Exception as e:
 
             logger.exception(f"[{request_id}] REQUEST FAILED")
+
             return {
                 "request_id": request_id,
                 "error": str(e)
             }
 
+
     return app
 
 
 # =====================================================
-# GLOBAL AIP CONFIG
+# GLOBAL CONFIG (USED BY LAUNCHER)
 # =====================================================
 AIP_LIST = [
     {

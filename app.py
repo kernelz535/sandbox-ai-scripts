@@ -4,7 +4,7 @@ import uuid
 import logging
 import boto3
 
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 
@@ -32,7 +32,7 @@ AIP_LIST = [
 # =====================================================
 # REQUEST MODEL
 # =====================================================
-class ChatRequest(BaseModel):
+class InvokeRequest(BaseModel):
     text: str
 
 
@@ -41,10 +41,10 @@ class ChatRequest(BaseModel):
 # =====================================================
 def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
 
-    app = FastAPI(title=f"{aip_name} - {aip_type}")
+    app = FastAPI(title=f"{aip_name} ({aip_type})")
 
     # =================================================
-    # LOGGER (PORT BASED FILE + APPEND)
+    # LOGGER (PORT BASED FILE + APPEND MODE)
     # =================================================
     logger = logging.getLogger(f"{aip_name}-{port}")
     logger.setLevel(logging.INFO)
@@ -66,13 +66,16 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
 
+    # =================================================
+    # BEDROCK CLIENT
+    # =================================================
     bedrock = boto3.client(
         "bedrock-runtime",
         region_name=BEDROCK_REGION
     )
 
     # =================================================
-    # HEALTH
+    # HEALTH CHECK
     # =================================================
     @app.get("/health")
     def health():
@@ -84,18 +87,21 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
         }
 
     # =================================================
-    # CHAT / EMBEDDING ENDPOINT
+    # MAIN ENDPOINT
     # =================================================
     @app.post("/invoke")
-    def invoke(request: ChatRequest):
+    def invoke(request: InvokeRequest):
 
         request_id = str(uuid.uuid4())
-        start = time.time()
+        start_time = time.time()
 
         text = request.text
 
-        logger.info(f"[{request_id}] START | type={aip_type}")
+        logger.info(f"[{request_id}] REQUEST START")
+        logger.info(f"[{request_id}] MODEL={aip_name}")
+        logger.info(f"[{request_id}] TYPE={aip_type}")
         logger.info(f"[{request_id}] INPUT={text}")
+        logger.info(f"[{request_id}] INPUT_LENGTH={len(text)}")
 
         try:
 
@@ -106,7 +112,6 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
 
                 body = {
                     "anthropic_version": "bedrock-2023-05-31",
-                    "max_tokens": 4000,
                     "temperature": 0.2,
                     "messages": [
                         {
@@ -148,24 +153,31 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
 
                 result = json.loads(response["body"].read())
 
-                # Titan embeddings output
                 output = result.get("embedding", [])
 
             else:
-                raise Exception("Unknown model type")
+                raise Exception("Unsupported model type")
 
-            latency = round((time.time() - start) * 1000, 2)
+            # =================================================
+            # METRICS
+            # =================================================
+            latency_ms = round((time.time() - start_time) * 1000, 2)
 
-            logger.info(f"[{request_id}] LATENCY={latency}ms")
+            # =================================================
+            # LOG OUTPUT (FULL, NO TRUNCATION)
+            # =================================================
+            logger.info(f"[{request_id}] LATENCY_MS={latency_ms}")
             logger.info(f"[{request_id}] OUTPUT_TYPE={type(output)}")
 
-            # avoid huge logs for embeddings
-            if aip_type == "embedding":
-                logger.info(f"[{request_id}] EMBEDDING_DIM={len(output)}")
-            else:
-                logger.info(f"[{request_id}] OUTPUT={output[:200]}")
+            if aip_type == "chat":
+                logger.info(f"[{request_id}] OUTPUT_LENGTH={len(output)}")
+                logger.info(f"[{request_id}] OUTPUT={output}")
 
-            logger.info(f"[{request_id}] END SUCCESS")
+            elif aip_type == "embedding":
+                logger.info(f"[{request_id}] EMBEDDING_DIM={len(output)}")
+                logger.info(f"[{request_id}] EMBEDDING_VECTOR={output}")
+
+            logger.info(f"[{request_id}] REQUEST END SUCCESS")
 
             return {
                 "request_id": request_id,
@@ -173,11 +185,34 @@ def create_app(aip_name: str, aip_type: str, aip_arn: str, port: int):
                 "type": aip_type,
                 "port": port,
                 "output": output,
-                "latency_ms": latency
+                "latency_ms": latency_ms
             }
 
         except Exception as e:
-            logger.exception(f"[{request_id}] FAILED")
-            raise HTTPException(status_code=500, detail=str(e))
+
+            logger.exception(f"[{request_id}] REQUEST FAILED")
+            return {
+                "request_id": request_id,
+                "error": str(e)
+            }
 
     return app
+
+
+# =====================================================
+# GLOBAL AIP CONFIG
+# =====================================================
+AIP_LIST = [
+    {
+        "name": "claude-sonnet-chat",
+        "type": "chat",
+        "arn": "arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/r59etrt038g0",
+        "port": 8001
+    },
+    {
+        "name": "titan-embeddings",
+        "type": "embedding",
+        "arn": "arn:aws:bedrock:us-east-1:196856463470:application-inference-profile/okts96tw2u7u",
+        "port": 8002
+    }
+]
